@@ -28,14 +28,14 @@ HOMEWORK_VERDICTS = {
 
 
 def check_tokens():
-    """Функция проверки токена"""
+    """Функция проверки токена."""
     return True if (PRACTICUM_TOKEN
                     and TELEGRAM_TOKEN
                     and TELEGRAM_CHAT_ID) else False
 
 
 def send_message(bot, message):
-    """Функция отправки сообщения"""
+    """Функция отправки сообщения."""
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
     except Exception as error:
@@ -51,35 +51,27 @@ def get_api_answer(timestamp):
     try:
         response = requests.get(**all_params)
     except requests.exceptions.RequestException as error:
-        raise telegram.TelegramError('Ошибка подключения'(
-            error=error,
-            **all_params,
-        ))
+        raise telegram.TelegramError(
+            f'Ошибка подключения {error}')
     response_status = response.status_code
     if response_status != 200:
-        raise KeyError('Endpoint не доступен'(
-            response_status=response_status,
-            **all_params,
-        ))
+        raise KeyError(f'Endpoint не доступен {response_status}')
     try:
         return response.json()
     except Exception as error:
-        raise KeyError('Формат не соответсвует JSON'(error))
+        raise KeyError(f'Формат не соответсвует JSON {error}')
 
 
 def check_response(response):
-    """Функция провреки ответа API"""
+    """Функция провреки ответа API."""
     if not isinstance(response, dict):
         raise TypeError('Ответ API не является словарем')
 
     if 'homeworks' not in response:
         raise KeyError('Отсутствует ключ "homework_name" в ответе API')
-
     homeworks = response['homeworks']
-
     if not isinstance(homeworks, list):
         raise TypeError('Ответ API не является списком')
-
     return homeworks
 
 
