@@ -7,6 +7,7 @@ import telegram
 from dotenv import load_dotenv
 from telegram import Bot
 from telegram.ext import Updater
+from exceptions import SendMessageError
 
 load_dotenv()
 
@@ -26,12 +27,6 @@ HOMEWORK_VERDICTS = {
 }
 
 
-class SendMessageError(Exception):
-    """Ошибка отправки сообщения в Telegram."""
-
-    pass
-
-
 def check_tokens():
     """Функция проверки токена."""
     return all([PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID])
@@ -41,14 +36,13 @@ def send_message(bot, message):
     """Функция отправки сообщения."""
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
-    except Exception as error:
-        logging.error(f'Сбой при отправке сообщения {error}')
+    except telegram.error.TelegramError as error:
+        logging.error(f'{SendMessageError} {error}')
     logging.debug(f'Сообщение"{message}" отправленно')
 
 
 def get_api_answer(timestamp):
     """Делает запрос к единственному эндпоинту API-сервиса."""
-    timestamp = timestamp or int(time.time())
     params = {'from_date': timestamp}
     try:
         response = requests.get(url=ENDPOINT, headers=HEADERS, params=params)
@@ -64,7 +58,6 @@ def check_response(response):
     """Функция провреки ответа API."""
     if not isinstance(response, dict):
         raise TypeError('Ответ API не является словарем')
-
     if 'homeworks' not in response:
         raise KeyError('Отсутствует компонент "homeworks" в ответе API')
     homeworks = response['homeworks']
@@ -97,11 +90,12 @@ def main():
 
     bot = Bot(token=TELEGRAM_TOKEN)
     send_message(bot, 'Запуск Бота')
-    timestamp = int(time.time())
+    current_timestamp = int(time.time())
     last_message_cache = ''
     while True:
         try:
-            response = get_api_answer(timestamp)
+            response = get_api_answer(current_timestamp)
+            current_timestamp = response.get('current_date')
             homeworks = check_response(response)
             for homework in homeworks:
                 message = parse_status(homework)
