@@ -7,6 +7,7 @@ import telegram
 from dotenv import load_dotenv
 from telegram import Bot
 from telegram.ext import Updater
+
 from exceptions import SendMessageError
 
 load_dotenv()
