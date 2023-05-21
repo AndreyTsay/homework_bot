@@ -116,7 +116,7 @@ def main():
                 last_message_cache = message_with_error
         finally:
             time.sleep(RETRY_PERIOD)
-        logging.info(f'Сообщение {message} отправлено')
+        logging.info('Сообщение отправлено')
 
 
 if __name__ == '__main__':
